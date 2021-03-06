@@ -31,6 +31,9 @@ function CpManager:setUpDebugChannels()
 
 	-- DEVELOPERS DEFAULT ACTIVE CHANNELS - ONLY WORKS FOR DEVELOPERS.
 	local defaultActive = {};
+	defaultActive[courseplay.DBG_MULTIPLAYER] = true
+	defaultActive[courseplay.DBG_IMPLEMENTS] = true
+	print('  activating channels %d and %d', courseplay.DBG_MULTIPLAYER, courseplay.DBG_IMPLEMENTS)
 	if CpManager.isDeveloper then
 		-- Enable specified debugmode by default for Satis Only!
 		if getMD5(g_gameSettings:getValue("nickname")) == "9a9f028043394ff9de1cf6c905b515c1" then
