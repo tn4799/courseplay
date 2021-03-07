@@ -23,6 +23,8 @@ without a field course.
 
 For unloading, it has the same behavior as the BaleLoaderAIDriver.
 
+It also works with a bale wrapper, find and wrap all wrappable bales.
+
 --]]
 
 ---@class BaleCollectorAIDriver : BaleLoaderAIDriver
@@ -98,7 +100,14 @@ function BaleCollectorAIDriver:collectNextBale()
 	if #self.bales > 0 then
 		self:findPathToNextBale()
 	else
-		self:info('No bales found.')
+		self:info('No bales found, scan the field once more before leaving for the unload course.')
+		self.bales = self:findBales(self.vehicle.cp.settings.baleCollectionField:get())
+		if #self.bales > 0 then
+			self:info('Found more bales, collecting them')
+			self:findPathToNextBale()
+			return
+		end
+		self:info('There really is no more bales on the field')
 		if self.baleLoader and self:getFillLevel() > 0.1 then
 			self:changeToUnloadOrRefill()
 			self:startCourseWithPathfinding(self.unloadRefillCourse, 1)
@@ -260,9 +269,6 @@ end
 --- Called from the generic driveFieldwork(), this the part doing the actual work on the field after/before all
 --- implements are started/lowered etc.
 function BaleCollectorAIDriver:work()
-	if self.baleWrapper then
-		renderText(0.1, 0.3, 0.018, tostring(self.baleWrapper.spec_baleWrapper.baleWrapperState))
-	end
 	if self.baleCollectingState == self.states.SEARCHING_FOR_NEXT_BALE then
 		self:setSpeed(0)
 		self:debug('work: searching for next bale')
@@ -290,7 +296,6 @@ function BaleCollectorAIDriver:approachBale()
 	end
 	if self.baleWrapper then
 		BaleWrapperAIDriver.handleBaleWrapper(self)
-		print(self.baleWrapper.spec_baleWrapper.baleWrapperState)
 		if self.baleWrapper.spec_baleWrapper.baleWrapperState ~= BaleWrapper.STATE_NONE then
 			self:debug('Start wrapping bale')
 			self:setBaleCollectingState(self.states.WORKING_ON_BALE)
@@ -307,7 +312,6 @@ function BaleCollectorAIDriver:workOnBale()
 	end
 	if self.baleWrapper then
 		BaleWrapperAIDriver.handleBaleWrapper(self)
-		print(self.baleWrapper.spec_baleWrapper.baleWrapperState)
 		if self.baleWrapper.spec_baleWrapper.baleWrapperState == BaleWrapper.STATE_NONE then
 			self:debug('Bale wrapped, moving on to the next')
 			self:collectNextBale()
