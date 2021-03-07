@@ -71,21 +71,25 @@ end
 
 function BaleLoaderAIDriver:initializeBaleLoader()
 	self.baleLoader = AIDriverUtil.getImplementWithSpecialization(self.vehicle, BaleLoader)
-	self:debug('baleloader %s', tostring(self.baleLoader))
-	-- Bale loaders have no AI markers (as they are not AIImplements according to Giants) so add a function here
-	-- to get the markers
-	self.baleLoader.getAIMarkers = function(object)
-		return UnloadableFieldworkAIDriver.getAIMarkersFromGrabberNode(object, object.spec_baleLoader)
-	end
+	if self.baleLoader then
+		self:debug('baleloader %s', tostring(self.baleLoader))
+		-- Bale loaders have no AI markers (as they are not AIImplements according to Giants) so add a function here
+		-- to get the markers
+		self.baleLoader.getAIMarkers = function(object)
+			return UnloadableFieldworkAIDriver.getAIMarkersFromGrabberNode(object, object.spec_baleLoader)
+		end
 
-	self.manualUnloadNode = WaypointNode(self.vehicle:getName() .. 'unloadNode')
-	if self.baleLoader.cp.realUnloadOrFillNode then
-		-- use that realUnloadOrFillNode for now as it includes the balerUnloadDistance config value
-		-- TODO: can we just use the back marker node here as well?
-		self.baleFinderProximitySensorPack = BackwardLookingProximitySensorPack(
-			self.vehicle, self.ppc, self.baleLoader.cp.realUnloadOrFillNode, 5, 1)
+		self.manualUnloadNode = WaypointNode(self.vehicle:getName() .. 'unloadNode')
+		if self.baleLoader.cp.realUnloadOrFillNode then
+			-- use that realUnloadOrFillNode for now as it includes the balerUnloadDistance config value
+			-- TODO: can we just use the back marker node here as well?
+			self.baleFinderProximitySensorPack = BackwardLookingProximitySensorPack(
+				self.vehicle, self.ppc, self.baleLoader.cp.realUnloadOrFillNode, 5, 1)
+		end
+		self:debug('Initialized, bale loader: %s', self.baleLoader:getName())
+	else
+		self:debug('Has now bale loader specialization')
 	end
-	self:debug('Initialized, bale loader: %s', self.baleLoader:getName())
 end
 
 ---@return boolean true if unload took over the driving

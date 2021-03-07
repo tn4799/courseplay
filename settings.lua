@@ -1817,6 +1817,7 @@ function StartingPointSetting:init(vehicle)
 		'COURSEPLAY_START_AT_POINT', 'COURSEPLAY_START_AT_POINT', vehicle, values, texts)
 end
 
+-- TODO: this should probably part of the specific driver mode?
 function StartingPointSetting:getValuesForMode(mode)
 	if mode == courseplay.MODE_COMBI or mode == courseplay.MODE_OVERLOADER then
 		return {
