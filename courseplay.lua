@@ -303,14 +303,13 @@ local function setGlobalData()
 	[32]={name='self.cp.isRecording',dataFormat='Bool'},
 	[33]={name='self.cp.recordingIsPaused',dataFormat='Bool'},
 	[34]={name='self.cp.searchCombineAutomatically',dataFormat='Bool'},
-	[35]={name='self.cp.waitTime',dataFormat='Int'},
-	[36]={name='self.cp.multiTools',dataFormat='Int'},
-	[37]={name='self.cp.alignment.enabled',dataFormat='Bool'},
-	[38]={name='self.cp.hasSowingMachine',dataFormat='Bool'},
-	[39]={name='self.cp.generationPosition.fieldNum',dataFormat='Int'},
-	[40]={name='self.cp.generationPosition.hasSavedPosition',dataFormat='Bool'},
-	[41]={name='self.cp.generationPosition.x',dataFormat='Float'},
-	[42]={name='self.cp.generationPosition.z',dataFormat='Float'}
+	[35]={name='self.cp.multiTools',dataFormat='Int'},
+	[36]={name='self.cp.alignment.enabled',dataFormat='Bool'},
+	[37]={name='self.cp.hasSowingMachine',dataFormat='Bool'},
+	[38]={name='self.cp.generationPosition.fieldNum',dataFormat='Int'},
+	[39]={name='self.cp.generationPosition.hasSavedPosition',dataFormat='Bool'},
+	[40]={name='self.cp.generationPosition.x',dataFormat='Float'},
+	[41]={name='self.cp.generationPosition.z',dataFormat='Float'}
 	}
 	
 	courseplay.globalSettings = SettingsContainer.createGlobalSettings()

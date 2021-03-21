@@ -311,16 +311,11 @@ function courseplay:changeTurnDiameter(vehicle, changeBy)
 	end;
 end
 
-
-function courseplay:changeWaitTime(vehicle, changeBy)
-	vehicle.cp.waitTime = math.max(0, vehicle.cp.waitTime + changeBy);
-end;
-
 function courseplay:getCanHaveWaitTime(vehicle)
 	return vehicle.cp.mode == 1 or vehicle.cp.mode == 2 or vehicle.cp.mode == 5 or (vehicle.cp.mode == 6 and not vehicle.cp.hasBaleLoader) or vehicle.cp.mode == 8;
 end;
 
---legancy Code in toolManager still using it!
+--legacy Code in toolManager still using it!
 function courseplay:changeReverseSpeed(vehicle, changeBy, force, forceReloadPage)
 	local speed = force or (vehicle.cp.speeds.reverse + changeBy);
 	if not force then
@@ -1325,7 +1320,7 @@ function IntSetting:changeByX(x)
 	self:set(self:get()+x)
 end
 
-function IntSetting:set(value,noEventSend)
+function IntSetting:set(value, noEventSend)
 	local minOk = self.MIN and value>=self.MIN or self.MIN == nil
 	local maxOk = self.MAX and value<=self.MAX or self.MAX == nil
 	if minOk and maxOk and value then 
@@ -2640,7 +2635,7 @@ end
 ---@class AlwaysSearchFuelSetting : BooleanSetting
 AlwaysSearchFuelSetting = CpObject(BooleanSetting)
 function AlwaysSearchFuelSetting:init(vehicle)
-	BooleanSetting.init(self, 'allwaysSearchFuel', 'COURSEPLAY_FUEL_SEARCH_FOR', 'COURSEPLAY_FUEL_SEARCH_FOR', vehicle, {'COURSEPLAY_FUEL_BELOW_20PCT','COURSEPLAY_FUEL_ALWAYS'})
+	BooleanSetting.init(self, 'alwaysSearchFuel', 'COURSEPLAY_FUEL_SEARCH_FOR', 'COURSEPLAY_FUEL_SEARCH_FOR', vehicle, {'COURSEPLAY_FUEL_BELOW_20PCT','COURSEPLAY_FUEL_ALWAYS'})
 	self:set(false)
 end
 ---@class RealisticDrivingSetting : BooleanSetting
@@ -3557,6 +3552,32 @@ function ShowVisualWaypointsCrossPointSetting:onChange()
 	courseplay.signs:setSignsVisibility(self.vehicle)
 end
 
+--- Time to wait at a waitpoint in seconds
+---@class WaitTimeSetting : IntSetting
+WaitTimeSetting = CpObject(IntSetting)
+function WaitTimeSetting:init(vehicle)
+	IntSetting.init(self, 'waitTime','COURSEPLAY_WAITING_TIME', 'COURSEPLAY_WAITING_TIME',
+		vehicle,0,3600)
+	-- set a default value, no need to send and event, right?
+	self:set(0, false)
+end
+
+function WaitTimeSetting:getText()
+	local str;
+	if self.value < 1 then
+		str = '---';
+	elseif self.value < 60 then
+		str = courseplay:loc('COURSEPLAY_SECONDS'):format(self.value);
+	else
+		local minutes, seconds = math.floor(self.value / 60), self.value % 60;
+		str = courseplay:loc('COURSEPLAY_MINUTES'):format(minutes);
+		if seconds > 0 then
+			str = str .. ', ' .. courseplay:loc('COURSEPLAY_SECONDS'):format(seconds);
+		end;
+	end;
+	return str
+end
+
 ---@class ConvoyActiveSetting : BooleanSetting
 ConvoyActiveSetting = CpObject(BooleanSetting)
 function ConvoyActiveSetting:init(vehicle)
@@ -3568,7 +3589,7 @@ end
 ---@class ConvoyMaxDistanceSetting : IntSetting
 ConvoyMaxDistanceSetting = CpObject(IntSetting)
 function ConvoyMaxDistanceSetting:init(vehicle)
-	IntSetting.init(self, 'convoyMaxDistance','COURSEPLAY_CONVOY_MAX_DISTANCE', 'COURSEPLAY_CONVOY_MAX_DISTANCE', vehicle,40,3000) 
+	IntSetting.init(self, 'convoyMaxDistance','COURSEPLAY_CONVOY_MAX_DISTANCE', 'COURSEPLAY_CONVOY_MAX_DISTANCE', vehicle,40,3000)
 	self:set(300)
 end
 
@@ -4224,6 +4245,7 @@ function SettingsContainer.createVehicleSpecificSettings(vehicle)
 	container:addSetting(OppositeTurnModeSetting,vehicle)
 	container:addSetting(FoldImplementAtEndSetting, vehicle)
 	container:addSetting(ConvoyActiveSetting,vehicle)
+	container:addSetting(WaitTimeSetting,vehicle)
 	container:addSetting(ConvoyMinDistanceSetting,vehicle)
 	container:addSetting(ConvoyMaxDistanceSetting,vehicle) -- do we need this one ?
 	container:addSetting(FrontloaderToolPositionsSetting,vehicle)

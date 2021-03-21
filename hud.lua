@@ -761,10 +761,10 @@ function courseplay.hud:updatePageContent(vehicle, page)
 					--SaveFuelOptionSetting
 					vehicle.cp.hud.content.pages[page][line][1].text = vehicle.cp.settings.saveFuelOption:getLabel()
 					vehicle.cp.hud.content.pages[page][line][2].text = vehicle.cp.settings.saveFuelOption:getText() 
-				elseif entry.functionToCall == 'allwaysSearchFuel:toggle' then
+				elseif entry.functionToCall == 'alwaysSearchFuel:toggle' then
 					--AlwaysSearchFuelSetting
-					vehicle.cp.hud.content.pages[page][line][1].text = vehicle.cp.settings.allwaysSearchFuel:getLabel()
-					vehicle.cp.hud.content.pages[page][line][2].text = vehicle.cp.settings.allwaysSearchFuel:getText()
+					vehicle.cp.hud.content.pages[page][line][1].text = vehicle.cp.settings.alwaysSearchFuel:getLabel()
+					vehicle.cp.hud.content.pages[page][line][2].text = vehicle.cp.settings.alwaysSearchFuel:getText()
 				elseif entry.functionToCall == 'changeLoadUnloadOffsetX' then
 					vehicle.cp.hud.content.pages[page][line][1].text = courseplay:loc('COURSEPLAY_LOAD_UNLOAD_OFFSET_X');
 					if vehicle.cp.loadUnloadOffsetX and vehicle.cp.loadUnloadOffsetX ~= 0 then
@@ -884,27 +884,15 @@ function courseplay.hud:updatePageContent(vehicle, page)
 					end;
 				elseif entry.functionToCall == 'changeToolOffsetX' then
 					--Tool horizontal offset
-					vehicle.cp.hud.content.pages[page][line][1].text = courseplay:loc('COURSEPLAY_TOOL_OFFSET_X');
+					vehicle.cp.hud.content.pages[page][line][1].text = vehicle.cp.settings.toolOffsetX:getLabel()
 					vehicle.cp.hud.content.pages[page][line][2].text = vehicle.cp.settings.toolOffsetX:getText()
 				elseif entry.functionToCall == 'changeToolOffsetZ' then
 					--Tool vertical offset
-					vehicle.cp.hud.content.pages[page][line][1].text = courseplay:loc('COURSEPLAY_TOOL_OFFSET_Z');
+					vehicle.cp.hud.content.pages[page][line][1].text = vehicle.cp.settings.toolOffsetZ:getLabel()
 					vehicle.cp.hud.content.pages[page][line][2].text = vehicle.cp.settings.toolOffsetZ:getText()
-				elseif entry.functionToCall == 'changeWaitTime' then
-					vehicle.cp.hud.content.pages[page][line][1].text = courseplay:loc('COURSEPLAY_WAITING_TIME');
-					local str;
-					if vehicle.cp.waitTime < 1 then
-						str = '---';
-					elseif vehicle.cp.waitTime < 60 then
-						str = courseplay:loc('COURSEPLAY_SECONDS'):format(vehicle.cp.waitTime);
-					else
-						local minutes, seconds = floor(vehicle.cp.waitTime/60), vehicle.cp.waitTime % 60;
-						str = courseplay:loc('COURSEPLAY_MINUTES'):format(minutes);
-						if seconds > 0 then
-							str = str .. ', ' .. courseplay:loc('COURSEPLAY_SECONDS'):format(seconds);
-						end;
-					end;
-					vehicle.cp.hud.content.pages[page][line][2].text = str;
+				elseif entry.functionToCall == 'waitTime:changeByX' then
+					vehicle.cp.hud.content.pages[page][line][1].text = vehicle.cp.settings.waitTime:getLabel()
+					vehicle.cp.hud.content.pages[page][line][2].text = vehicle.cp.settings.waitTime:getText();
 				
 				elseif entry.functionToCall == 'toggleAlignmentWaypoint' then
 					vehicle.cp.hud.content.pages[page][line][1].text = courseplay:loc('COURSEPLAY_ALIGNMENT_WAYPOINT');
@@ -2064,9 +2052,9 @@ function courseplay.hud:setAIDriverContent(vehicle)
 	self:enablePageButton(vehicle, 7)
 	self:addSettingsRow(vehicle,vehicle.cp.settings.warningLightsMode,'next', 7, 1, 1 )
 	self:addRowButton(vehicle,vehicle.cp.settings.saveFuelOption,'toggle', 7, 2, 1 )
-	self:addRowButton(vehicle,vehicle.cp.settings.allwaysSearchFuel,'toggle', 7, 3, 1 )
+	self:addRowButton(vehicle,vehicle.cp.settings.alwaysSearchFuel,'toggle', 7, 3, 1 )
 	self:addRowButton(vehicle,vehicle.cp.settings.automaticCoverHandling,'toggle', 7, 4, 1 )
-	self:addSettingsRow(vehicle,nil,'changeWaitTime', 7, 5, 1 )
+	self:addSettingsRow(vehicle,vehicle.cp.settings.waitTime,'changeByX', 7, 5, 1 )
 	
 	self:setReloadPageOrder(vehicle, -1, true)
 end

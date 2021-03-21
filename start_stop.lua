@@ -113,11 +113,6 @@ function courseplay:start(self)
 	courseplay:debug(string.format("%s: numWaitPoints=%d, waitPoints[1]=%s, numCrossingPoints=%d",
 		nameNum(self), self.cp.numWaitPoints, tostring(self.cp.waitPoints[1]), numCrossingPoints), courseplay.DBG_COURSES);
 
-	-- set waitTime to 0 if necessary
-	if not courseplay:getCanHaveWaitTime(self) and self.cp.waitTime > 0 then
-		courseplay:changeWaitTime(self, -self.cp.waitTime);
-	end;
-
 	if self.cp.waypointIndex > 2 and self.cp.mode ~= 4 and self.cp.mode ~= 6 and self.cp.mode ~= 8 then
 		courseplay:setDriveUnloadNow(self, true);
 	elseif self.cp.mode == 4 or self.cp.mode == 6 then

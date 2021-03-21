@@ -63,7 +63,6 @@ function courseplay:onLoad(savegame)
 	self.cp.numWaitPoints = 0;
 	self.cp.unloadPoints = {};
 	self.cp.numUnloadPoints = 0;
-	self.cp.waitTime = 0;
 	self.cp.crossingPoints = {};
 	self.cp.numCrossingPoints = 0;
 
@@ -1132,7 +1131,6 @@ function courseplay:loadVehicleCPSettings(xmlFile, key, resetVehicles)
 		-- COURSEPLAY
 		local curKey = key .. '.courseplay.basics';
 		courseplay:setCpMode(self,  Utils.getNoNil(getXMLInt(xmlFile, curKey .. '#aiMode'), self.cp.mode), true);
-		self.cp.waitTime 		  = Utils.getNoNil(getXMLInt(xmlFile, curKey .. '#waitTime'), 0);
 		local courses 			  = Utils.getNoNil(getXMLString(xmlFile, curKey .. '#courses'), '');
 		self.cp.loadedCourses = StringUtil.splitString(",", courses);
 		courseplay:reloadCourses(self, true);
@@ -1218,7 +1216,6 @@ function courseplay:saveToXMLFile(xmlFile, key, usedModNames)
 	else
 		setXMLString(xmlFile, newKey..".basics #courses", tostring(table.concat(self.cp.loadedCourses, ",")))
 	end
-	setXMLInt(xmlFile, newKey..".basics #waitTime", self.cp.waitTime)
 
 	--HUD
 	setXMLBool(xmlFile, newKey..".HUD #showHud", self.cp.hud.show)

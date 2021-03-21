@@ -733,7 +733,8 @@ function AIDriver:onWaypointPassed(ix)
 	elseif self.course:isWaitAt(ix) then
 		-- default behaviour for mode 5 (transport), if a waypoint with the wait attribute is
 		-- passed stop until the user presses the continue button or the timer elapses
-		self:debug('Waiting point reached, wait time %d s', self.vehicle.cp.waitTime)
+		self:debug('Waiting point reached, wait time %d s', self.vehicle.cp.settings.waitTime:get())
+		self.waitStartTime = self.vehicle.timer
 		self:stop('WAIT_POINT')		
 		-- show continue button
 		self:refreshHUD()
@@ -760,8 +761,9 @@ end
 -- and continue when needed
 function AIDriver:continueIfWaitTimeIsOver()
 	if self:isAutoContinueAtWaitPointEnabled() then
-		if (self.vehicle.timer - self.lastMoveCommandTime) > self.vehicle.cp.waitTime * 1000 then
-			self:debug('Waiting time of %d s is over, continuing', self.vehicle.cp.waitTime)
+		if not self.waitStartTime or
+			((self.vehicle.timer - self.waitStartTime) > self.vehicle.cp.settings.waitTime:get() * 1000) then
+			self:debug('Waiting time of %d s is over, continuing', self.vehicle.cp.settings.waitTime:get())
 			self:continue()
 		end
 	end
@@ -772,7 +774,7 @@ end
 --- those modes have to override this.
 -- TODO: consider deriving a TransportAIDriver class for mode 5 if there are mode 5 only behaviors.
 function AIDriver:isAutoContinueAtWaitPointEnabled()
-	return self.vehicle.cp.waitTime > 0
+	return self.vehicle.cp.settings.waitTime:get() > 0
 end
 
 function AIDriver:isWaiting()

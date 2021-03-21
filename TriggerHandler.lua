@@ -16,7 +16,7 @@ function TriggerHandler:init(driver,vehicle,siloSelectedFillTypeSetting)
 	self.vehicle = vehicle
 	self.driver = driver
 	self.siloSelectedFillTypeSetting=siloSelectedFillTypeSetting
-	self.allwaysSearchFuel = vehicle.cp.settings.allwaysSearchFuel
+	self.alwaysSearchFuel = vehicle.cp.settings.alwaysSearchFuel
 	self.validFillTypeLoading = false
 	self.validFillTypeUnloading = false
 	self.validFillTypeUnloadingAugerWagon = false
@@ -441,7 +441,7 @@ end
 
 function TriggerHandler:needsFuel()
 	local currentFuelPercentage = self.driver:getFuelLevelPercentage()
-	local searchForFuel = self.allwaysSearchFuel:is(true) and currentFuelPercentage <99 or currentFuelPercentage < 20
+	local searchForFuel = self.alwaysSearchFuel:is(true) and currentFuelPercentage <99 or currentFuelPercentage < 20
 	if searchForFuel then 
 		return true
 	end
