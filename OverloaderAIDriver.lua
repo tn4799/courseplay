@@ -152,16 +152,16 @@ end
 function OverloaderAIDriver:onWaypointPassed(ix)
     -- just in case...
     self.nearOverloadPoint = self.course:hasWaitPointWithinDistance(ix, 30)
-    if self.course:isWaitAt(ix) then
-        if self:isTrailerEmpty() then
-            self:debug('Wait point reached but my trailer is empty, continuing')
-        else
-            self:debug('Wait point reached, wait for trailer.')
-            self.unloadCourseState = self.states.WAITING_FOR_TRAILER
-        end
-    else
-        CombineUnloadAIDriver.onWaypointPassed(self, ix)
-    end
+	CombineUnloadAIDriver.onWaypointPassed(self, ix)
+end
+
+function OverloaderAIDriver:onWaitPointReached()
+	if self:isTrailerEmpty() then
+		self:debug('Wait point reached but my trailer is empty, continuing')
+	else
+		self:debug('Wait point reached, wait for trailer.')
+		self.unloadCourseState = self.states.WAITING_FOR_TRAILER
+	end
 end
 
 function OverloaderAIDriver:isTrailerEmpty()

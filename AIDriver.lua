@@ -135,6 +135,7 @@ AIDriver.myStates = {
 	TEMPORARY = {}, -- Temporary course, dynamically generated, for example alignment or fruit avoidance
 	RUNNING = {},
 	STOPPED = {},
+	WAITING = {}, -- waiting at a wait point
 	DONE = {}
 }
 
@@ -435,7 +436,8 @@ function AIDriver:drive(dt)
 
 	if self.state == self.states.STOPPED or self.triggerHandler:isLoading() or self.triggerHandler:isUnloading() then
 		self:hold()
-		self:continueIfWaitTimeIsOver()
+	elseif self.state == self.states.WAITING then
+		self:wait()
 	end
 	self:driveCourse(dt)
 	self:drawTemporaryCourse()
@@ -734,10 +736,7 @@ function AIDriver:onWaypointPassed(ix)
 		-- default behaviour for mode 5 (transport), if a waypoint with the wait attribute is
 		-- passed stop until the user presses the continue button or the timer elapses
 		self:debug('Waiting point reached, wait time %d s', self.vehicle.cp.settings.waitTime:get())
-		self.waitStartTime = self.vehicle.timer
-		self:stop('WAIT_POINT')		
-		-- show continue button
-		self:refreshHUD()
+		self:onWaitPointReached()
 	end
 end
 
@@ -750,6 +749,18 @@ function AIDriver:onLastWaypoint()
 	end
 end
 
+function AIDriver:onWaitPointReached()
+	if self.vehicle.cp.settings.waitTime:get() <= 0 then return end
+	self.waitStartTime = self.vehicle.timer
+	self:deleteCollisionDetector()
+	self.triggerHandler:onStop()
+	-- not much to do here, see the derived classes
+	self:setInfoText('WAIT_POINT')
+	self.state = self.states.WAITING
+	-- show continue button
+	self:refreshHUD()
+end
+
 --- End a course and then continue on nextCourse at nextWpIx
 function AIDriver:continueOnNextCourse(nextCourse, nextWpIx)
 	self:startCourse(nextCourse, nextWpIx)
@@ -759,26 +770,21 @@ end
 
 --- When stopped at a wait point, check if the waiting time is over
 -- and continue when needed
-function AIDriver:continueIfWaitTimeIsOver()
-	if self:isAutoContinueAtWaitPointEnabled() then
-		if not self.waitStartTime or
-			((self.vehicle.timer - self.waitStartTime) > self.vehicle.cp.settings.waitTime:get() * 1000) then
-			self:debug('Waiting time of %d s is over, continuing', self.vehicle.cp.settings.waitTime:get())
-			self:continue()
-		end
+function AIDriver:wait()
+	self:hold()
+	if not self.waitStartTime or
+		((self.vehicle.timer - self.waitStartTime) > self.vehicle.cp.settings.waitTime:get() * 1000) then
+		self:debug('Waiting time of %d s is over, continuing', self.vehicle.cp.settings.waitTime:get())
+		self:continueAfterWaitTimeIsOver()
 	end
 end
 
---- Is automatically continuing after stopped at a waypoint enabled? This is the default behavior in
---- mode 5 when there's a wait time set. As long as the waitpoint is used for other purposes in other modes,
---- those modes have to override this.
--- TODO: consider deriving a TransportAIDriver class for mode 5 if there are mode 5 only behaviors.
-function AIDriver:isAutoContinueAtWaitPointEnabled()
-	return self.vehicle.cp.settings.waitTime:get() > 0
+function AIDriver:continueAfterWaitTimeIsOver()
+	self:continue()
 end
 
 function AIDriver:isWaiting()
-	return self.state == self.states.STOPPED
+	return self.state == self.states.STOPPED or self.state == self.states.WAITING
 end
 
 function AIDriver:hasTipTrigger()

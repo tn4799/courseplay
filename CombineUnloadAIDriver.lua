@@ -209,8 +209,9 @@ end
 function CombineUnloadAIDriver:drive(dt)
 	courseplay:updateFillLevelsAndCapacities(self.vehicle)
 	self:updateCombineStatus()
-
-	if self.state == self.states.ON_UNLOAD_COURSE then
+	-- we let the AIDriver drive most of this so we need to handle the waiting state as it may enter that when
+	-- a waitpoint is reached
+	if self.state == self.states.ON_UNLOAD_COURSE or self.state == self.states.WAITING then
 		self:driveUnloadCourse(dt)
 		self:enableFillTypeUnloading()
 	elseif self.state == self.states.ON_FIELD then
@@ -237,6 +238,11 @@ function CombineUnloadAIDriver:driveUnloadCourse(dt)
 	if not giveUpControl then
 		AIDriver.drive(self, dt)
 	end
+end
+
+function CombineUnloadAIDriver:continueAfterWaitTimeIsOver()
+	self:debug('Wait time expired, continue on unload course')
+	self:setNewState(self.states.ON_UNLOAD_COURSE)
 end
 
 function CombineUnloadAIDriver:resetPathfinder()

@@ -1097,9 +1097,9 @@ function FieldworkAIDriver:findLoweringDurationMs()
 	self:debug('Final lowering duration: %d ms', self.loweringDurationMs)
 end
 
---- Never continue automatically at a wait point
-function FieldworkAIDriver:isAutoContinueAtWaitPointEnabled()
-	return false
+--- Ignore wait points
+function FieldworkAIDriver:onWaitPointReached()
+	return
 end
 
 -- instantiate generic turn course, derived classes may override
