@@ -750,13 +750,13 @@ function AIDriver:onLastWaypoint()
 end
 
 function AIDriver:onWaitPointReached()
-	if self.vehicle.cp.settings.waitTime:get() <= 0 then return end
 	self.waitStartTime = self.vehicle.timer
 	self:deleteCollisionDetector()
 	self.triggerHandler:onStop()
 	-- not much to do here, see the derived classes
 	self:setInfoText('WAIT_POINT')
 	self.state = self.states.WAITING
+	self:debug('Wait point reached, wait time set to %d s', self.vehicle.cp.settings.waitTime:get())
 	-- show continue button
 	self:refreshHUD()
 end
@@ -772,9 +772,13 @@ end
 -- and continue when needed
 function AIDriver:wait()
 	self:hold()
-	if not self.waitStartTime or
-		((self.vehicle.timer - self.waitStartTime) > self.vehicle.cp.settings.waitTime:get() * 1000) then
-		self:debug('Waiting time of %d s is over, continuing', self.vehicle.cp.settings.waitTime:get())
+	local waitTime = self.vehicle.cp.settings.waitTime:get()
+	-- wait forever (or user clicks continue) if no wait time set
+	if waitTime <= 0 then
+		self:debugSparse('Waiting at wait point (wait time set to %d s)', waitTime)
+	elseif not self.waitStartTime or
+		((self.vehicle.timer - self.waitStartTime) > waitTime * 1000) then
+		self:debug('Waiting time of %d s is over, continuing', waitTime)
 		self:continueAfterWaitTimeIsOver()
 	end
 end
