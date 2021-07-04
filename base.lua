@@ -175,7 +175,6 @@ function courseplay:onLoad(savegame)
 	self.cp.hasRunRaycastThisLoop = {};
 	self.findVehicleHeights = courseplay.findVehicleHeights; 
 	
-	self.cp.fillTriggers = {}
 	
 	if self.maxRotation then
 		self.cp.steeringAngle = math.deg(self.maxRotation);
@@ -327,6 +326,7 @@ function courseplay:onDraw()
 	courseplay:showTemporaryMarkers(self)
 	if self.cp.driver then 
 		self.cp.driver.triggerHandler:onDraw()
+		self.cp.driver.triggerSensor:onDraw()
 	end
 	local isDriving = self:getIsCourseplayDriving();
 
