@@ -93,13 +93,16 @@ function FieldSupplyAIDriver:drive(dt)
 		self:updateInfoText()
 		if self.objectWithPipe then
 			self.triggerHandler:enableFillTypeUnloadingAugerWagon()
-			if AIDriverUtil.isTrailerUnderPipe(self.pipe,true) then 
+			---TODO: Currently it's not possible to open the pipe after the mode 4 driver arrives,
+			---		 as there is not trigger to detect it, while the pipe is closed.
+
+		--	if AIDriverUtil.isTrailerUnderPipe(self.pipe,true) then 
 				--- Open the pipe if there is a trailer under the pipe and standing still.
 				self.objectWithPipe:setPipeState(AIDriverUtil.PIPE_STATE_OPEN)
 				self:isWorkingToolPositionReached(dt,1)
-			else 
-				self.objectWithPipe:setPipeState(AIDriverUtil.PIPE_STATE_CLOSED)
-			end
+		--	else 
+		--		self.objectWithPipe:setPipeState(AIDriverUtil.PIPE_STATE_CLOSED)
+		--	end
 		else
 			self.triggerHandler:enableFillTypeUnloading()
 		end
