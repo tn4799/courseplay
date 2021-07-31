@@ -70,6 +70,120 @@ function courseplay:doSingleRaycast(vehicle, triggerType, direction, callBack, x
 	end;
 end;
 
+--- FIND TIP TRIGGER CALLBACK
+-- target object in raycastAll() was the vehicle, so here, super confusingly, self is the vehicle and not courseplay,
+-- TODO: function signature should really be courseplay.findTipTriggerCallback(vehicle, transformId, x, y, z) for clarity.
+-- When a trigger with a suitable fill type is found, vehicle.cp.currentTipTrigger is set to the trigger (definition unclear)
+-- and vehicle.cp.currentTipTrigger.cpActualLength is set to a twice the distance from the trigger (reason for twice is undocumented)
+function courseplay:findTipTriggerCallback(transformId, x, y, z, distance)
+	if CpManager.confirmedNoneTipTriggers[transformId] == true then
+		return true;
+	end;
+
+	if courseplay.debugChannels[courseplay.DBG_TRIGGERS] then
+		cpDebug:drawPoint( x, y, z, 1, 1, 0);
+	end;
+
+	local name = tostring(getName(transformId));
+
+	
+	-- TIPTRIGGERS
+	local tipTriggers, tipTriggersCount = courseplay.triggers.tipTriggers, courseplay.triggers.tipTriggersCount
+	courseplay:debug(('%s: found %s'):format(nameNum(self), name), courseplay.DBG_TRIGGERS);
+
+	if self.cp.workTools[1] ~= nil and tipTriggers ~= nil and tipTriggersCount > 0 then
+		courseplay:debug(('%s: transformId=%s: %s'):format(nameNum(self), tostring(transformId), name), courseplay.DBG_TRIGGERS);
+		local trailerFillType = self.cp.workTools[1].cp.fillType;
+		if trailerFillType == nil or trailerFillType == 0 then
+			for i=1,#(self.cp.workTools) do
+				trailerFillType = self.cp.workTools[i].cp.fillType;
+				if trailerFillType ~= nil and trailerFillType ~= 0 then 
+					break
+				end
+			end
+		end
+		if transformId ~= nil then
+			local trigger = tipTriggers[transformId]
+			if trigger ~= nil then
+				if trigger.bunkerSilo ~= nil and trigger.state ~= 0 then 
+					courseplay:debug(('%s: bunkerSilo.state=%d -> ignoring trigger'):format(nameNum(self), trigger.state), courseplay.DBG_TRIGGERS);
+					return true
+				end
+				if self.cp.hasShield and trigger.bunkerSilo == nil then
+					courseplay:debug(nameNum(self) .. ": has silage shield and trigger is not BGA -> ignoring trigger", courseplay.DBG_TRIGGERS);
+					return true
+				end
+
+				local triggerId = trigger.triggerId;
+				if triggerId == nil then
+					triggerId = trigger.tipTriggerId;
+				end;
+				courseplay:debug(('%s: transformId %s is in tipTriggers (#%s) (triggerId=%s)'):format(nameNum(self), tostring(transformId), tostring(tipTriggersCount), tostring(triggerId)), courseplay.DBG_TRIGGERS);
+
+				if trigger.isFermentingSiloTrigger then
+					trigger = trigger.TipTrigger
+					courseplay:debug('    trigger is FermentingSiloTrigger', courseplay.DBG_TRIGGERS);
+				elseif trigger.isAlternativeTipTrigger then
+					courseplay:debug('    trigger is AlternativeTipTrigger', courseplay.DBG_TRIGGERS);
+				elseif trigger.isPlaceableHeapTrigger then
+					courseplay:debug('    trigger is PlaceableHeap', courseplay.DBG_TRIGGERS);
+				end;
+
+				courseplay:debug(('    trailerFillType=%s %s'):format(tostring(trailerFillType), trailerFillType and g_fillTypeManager.indexToName[trailerFillType] or ''), courseplay.DBG_TRIGGERS);
+				if trailerFillType and trigger.acceptedFillTypes ~= nil and trigger.acceptedFillTypes[trailerFillType] then
+					courseplay:debug(('    trigger (%s) accepts trailerFillType'):format(tostring(triggerId)), courseplay.DBG_TRIGGERS);
+					-- check trigger fillLevel / capacity
+					if trigger.unloadingStation then
+						local ownerFarmId = self:getOwnerFarmId();
+						local fillLevel = trigger.unloadingStation:getFillLevel(trailerFillType, ownerFarmId);
+						local capacity = trigger.unloadingStation:getCapacity(trailerFillType, ownerFarmId);
+						courseplay:debug(('    trigger (%s) fillLevel=%d, capacity=%d '):format(tostring(triggerId), fillLevel, capacity), courseplay.DBG_TRIGGERS);
+						if fillLevel>=capacity then
+							courseplay:debug(('    trigger (%s) Trigger is full -> abort'):format(tostring(triggerId)), courseplay.DBG_TRIGGERS);
+							return true;
+						end
+					end;
+
+					-- check single fillType validity
+					local fillTypeIsValid = true;
+					if trigger.currentFillType then
+						fillTypeIsValid = trigger.currentFillType == 0 or trigger.currentFillType == trailerFillType;
+						courseplay:debug(('    trigger (%s): currentFillType=%d -> fillTypeIsValid=%s'):format(tostring(triggerId), trigger.currentFillType, tostring(fillTypeIsValid)), courseplay.DBG_TRIGGERS);
+					elseif trigger.getFillType then
+						local triggerFillType = trigger:getFillType();
+						fillTypeIsValid = triggerFillType == 0 or triggerFillType == trailerFillType;
+						courseplay:debug(('    trigger (%s): trigger:getFillType()=%d -> fillTypeIsValid=%s'):format(tostring(triggerId), triggerFillType, tostring(fillTypeIsValid)), courseplay.DBG_TRIGGERS);
+					end;
+
+					if fillTypeIsValid then
+						self.cp.currentTipTrigger = trigger;
+						self.cp.currentTipTrigger.cpActualLength = courseplay:nodeToNodeDistance(self.cp.directionNode or self.rootNode, trigger.triggerId)*2
+						courseplay:debug(('%s: self.cp.currentTipTrigger=%s , cpActualLength=%s'):format(nameNum(self), tostring(triggerId),tostring(self.cp.currentTipTrigger.cpActualLength)), courseplay.DBG_TRIGGERS);
+						return false
+					end;
+				elseif trigger.acceptedFillTypes ~= nil then
+
+					if courseplay.debugChannels[courseplay.DBG_TRIGGERS] then
+						courseplay:debug(('    trigger (%s) does not accept trailerFillType (%s)'):format(tostring(triggerId), tostring(trailerFillType)), courseplay.DBG_TRIGGERS);
+						courseplay:debug(('    trigger (%s) acceptedFillTypes:'):format(tostring(triggerId)), courseplay.DBG_TRIGGERS);
+						courseplay:printTipTriggersFruits(trigger)
+					end
+				else
+					courseplay:debug(string.format("%s: trigger %s does not have acceptedFillTypes (trailerFillType=%s)", nameNum(self), tostring(triggerId), tostring(trailerFillType)), courseplay.DBG_TRIGGERS);
+				end;
+				return true;
+			end;
+
+		end;
+	end;
+
+	CpManager.confirmedNoneTipTriggers[transformId] = true;
+	CpManager.confirmedNoneTipTriggersCounter = CpManager.confirmedNoneTipTriggersCounter + 1;
+	courseplay:debug(('%s: added %s to trigger blacklist -> total=%d'):format(nameNum(self), name, CpManager.confirmedNoneTipTriggersCounter), courseplay.DBG_TRIGGERS);
+
+	return true;
+end;
+
 function courseplay:updateAllTriggers()
 	courseplay:debug('updateAllTriggers()', courseplay.DBG_TRIGGERS);
 
